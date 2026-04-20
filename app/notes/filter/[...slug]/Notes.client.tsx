@@ -2,12 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { fetchNotes } from "@/lib/api/notes";
 import type { NoteTag } from "@/types/note";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
-import Modal from "@/components/Modal/Modal";
-import NoteForm from "@/components/NoteForm/NoteForm";
 import NoteList from "@/components/NoteList/NoteList";
 import css from "../../NotesPage.module.css";
 
@@ -29,11 +28,10 @@ interface NotesClientProps {
 export default function NotesClient({ initialTag }: NotesClientProps = {}) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [isOpen, setIsOpen] = useState(false);
 
   const debouncedSearch = useDebounce(search, 400);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["notes", { search: debouncedSearch, page, tag: initialTag }],
     queryFn: () =>
       fetchNotes({
@@ -50,8 +48,8 @@ export default function NotesClient({ initialTag }: NotesClientProps = {}) {
   if (error || !data) return <p>Something went wrong</p>;
 
   return (
-    <div className={css.container}>
-      <div className={css.header}>
+    <div className={css.app}>
+      <div className={css.toolbar}>
         <SearchBox
           value={search}
           onChange={(v) => {
@@ -60,22 +58,10 @@ export default function NotesClient({ initialTag }: NotesClientProps = {}) {
           }}
         />
 
-        <button className={css.addButton} onClick={() => setIsOpen(true)}>
-          Add note
-        </button>
+        <Link href="/notes/action/create" className={css.button}>
+          Create note +
+        </Link>
       </div>
-
-      {isOpen && (
-        <Modal onClose={() => setIsOpen(false)}>
-          <NoteForm
-            onCancel={() => setIsOpen(false)}
-            onSuccess={() => {
-              setIsOpen(false);
-              refetch();
-            }}
-          />
-        </Modal>
-      )}
 
       <NoteList notes={data.notes} />
 

@@ -1,11 +1,39 @@
 import { QueryClient, dehydrate } from "@tanstack/react-query";
 import { HydrationBoundary } from "@tanstack/react-query";
+import type { Metadata } from "next";
 import { fetchNotes } from "@/lib/api/notes";
 import NotesClient from "./Notes.client";
 import type { NoteTag } from "@/types/note";
 
 interface FilterPageProps {
   params: Promise<{ slug: string[] }>;
+}
+
+export async function generateMetadata({
+  params,
+}: FilterPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const selectedFilter = slug[0] ?? "all";
+  const filterLabel =
+    selectedFilter === "all" ? "All notes" : `${selectedFilter} notes`;
+  const title = `${filterLabel} | NoteHub`;
+  const description = `Browse ${filterLabel.toLowerCase()} in NoteHub.`;
+  const url = `https://notehub.vercel.app/notes/filter/${selectedFilter}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      images: [
+        {
+          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
+        },
+      ],
+    },
+  };
 }
 
 export default async function FilterNotesPage({ params }: FilterPageProps) {
